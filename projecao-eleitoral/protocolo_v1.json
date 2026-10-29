@@ -1,6 +1,6 @@
 {
  "versao": "1.0",
- "congelado_em": "2026-10-29T12:45:00+00:00",
+ "congelado_em": "2026-10-29T12:35:00+00:00",
  "escopo": "Projeção do 2º turno presidencial (alvo binário) e do 1º turno (binário e vários candidatos) a partir da apuração por seção do TSE",
  "codigo_sha256": {
   "scripts/modelo.py": "c24d1d07534d4e28c81763acebd7ddfddc9033df67a4b43a55d33689a5dcde38",
