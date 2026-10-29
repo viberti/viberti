@@ -1,0 +1,19 @@
+{
+ "versao": "2.0-adendo-1",
+ "congelado_em": "2026-10-29T20:07:00+00:00",
+ "refere_se_a": {
+  "protocolo_v1.json": "28803eda8316e7259da224f3ecdaff0919c1c3788865035a1a215c6f64a9c4f2",
+  "protocolo_v2.json": "963b7ff82493df7292fbcf3a3621a2831836e990f6360004c6aca8c86c402d6b"
+ },
+ "motivo": "Regra de decisão entre v1 e v2 escrita antes do teste, a pedido da revisão de 29/10/2026. Não altera parâmetros nem código de nenhuma das versões.",
+ "teste": "Próxima eleição presidencial com 2º turno e votação por seção publicada, com a ordem real de chegada (hora de gravação dos BUs nos arquivos transmitidos ou hora de recebimento no arquivo auxiliar). As duas versões rodam com as mesmas ordens (a real e as 31 simuladas com as sementes fixas do código) e os mesmos cortes do semáforo (0,1% a 50%).",
+ "criterios_em_ordem": [
+  "1. Anúncio errado: a versão que anunciar o vencedor errado (amarelo ou verde) em qualquer ponto da ordem real perde; se as duas errarem, nenhuma é preferida e as duas são declaradas falhas.",
+  "2. Verde: entre as duas, é preferida a que tiver menos pontos verdes com |erro| > 0,5 ponto na ordem real; empate passa ao critério 3.",
+  "3. Mesmo critério nas 31 ordens simuladas (soma dos pontos verdes com |erro| > 0,5); empate passa ao critério 4.",
+  "4. Cobertura da faixa de 90% nos cortes de 0,5% a 50%, todas as ordens: é preferida a mais próxima de 90%, desde que seu erro absoluto médio não passe o da outra em mais de 0,05 ponto; senão, é preferida a de menor erro médio.",
+  "5. Persistindo empate, mantém-se a v1 (a versão congelada antes de ver 2018)."
+ ],
+ "relato": "Os resultados das duas versões em todos os critérios são publicados, qualquer que seja a decisão. Uma falha da versão preferida no critério 1 ou 2 é relatada como falha da regra verde fora da amostra.",
+ "segundos_turnos_de_governador": "Se usados como teste antes da próxima presidencial, entram só na comparação modelo × mudança uniforme e no erro médio de cada versão; não decidem entre v1 e v2, porque a regra verde não se aplica dentro de uma UF."
+}

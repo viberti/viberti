@@ -8,6 +8,7 @@ Modelo que projeta o resultado final a partir das primeiras seções apuradas, c
 |---|---|
 | `protocolo_v1.json`, `protocolo_v1.sha256` | Versão congelada em 29/10/2026 (12h35 UTC): parâmetros, regras do semáforo, plano de avaliação e SHA-256 de cada script |
 | `protocolo_v2.json`, `protocolo_v2.sha256` | Versão 2, congelada no mesmo dia depois dos testes de 2018 e das ordens transplantadas: incerteza entre UFs maior, covariáveis do Censo, efeito capital/interior e verde só a partir de 15% das seções. As escolhas são pós-hoc e estão descritas no próprio arquivo; v1 e v2 serão avaliadas lado a lado |
+| `protocolo_v2_adendo1.json`, `.sha256` | Regra de decisão entre v1 e v2, escrita antes do teste (não altera nenhuma das versões) |
 | `verificar_hashes.py` | Confere que o código em `codigo/` é o mesmo que foi congelado nos dois protocolos |
 | `codigo/load_*.py` | Carregam os dados abertos do TSE em DuckDB |
 | `codigo/scripts/` | Modelo (`modelo.py`, `modelo_1t_multi.py`), ordens de chegada e semáforo (`semaforo.py`), escolha das regras (`regra_loo.py`, `regra_vencedor_loo.py`, `regra_estab.py`), leitura dos arquivos da urna (`zipindex.py`, `ber.py`, `decode_bu.py`, `crawl_bu.py`, `crawl_aux_1t.py`) e os `run_*.sh` que geram cada tabela |
