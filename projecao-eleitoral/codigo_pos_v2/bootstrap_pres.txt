@@ -1,0 +1,19 @@
+                    eleicao  ordens           parcial               uf         nacional            ufcap           modelo      ufcap−modelo     modelo÷ufcap
+                       2006      30  6.46 (4.22–9.02) 5.57 (3.77–7.59) 0.46 (0.29–0.65) 0.43 (0.29–0.59) 0.40 (0.28–0.53) 0.04 (-0.06–0.14) 0.92 (0.71–1.16)
+                       2010      30  5.53 (3.39–7.97) 4.74 (2.95–6.76) 0.72 (0.47–1.04) 0.59 (0.39–0.83) 0.38 (0.27–0.49)  0.21 (0.04–0.42) 0.64 (0.46–0.91)
+                       2014      30  6.56 (4.19–9.28) 5.86 (3.83–8.09) 2.12 (1.39–3.00) 1.72 (1.13–2.40) 0.71 (0.50–0.94)  1.01 (0.55–1.55) 0.41 (0.33–0.55)
+                       2018      30 8.03 (5.27–11.20) 6.89 (4.57–9.45) 1.82 (1.20–2.54) 1.73 (1.17–2.39) 0.94 (0.68–1.23)  0.79 (0.26–1.43) 0.54 (0.38–0.80)
+                       2022      31  5.96 (3.87–8.47) 4.92 (3.21–6.89) 0.22 (0.15–0.32) 0.22 (0.14–0.31) 0.16 (0.12–0.22) 0.05 (-0.03–0.15) 0.75 (0.48–1.17)
+                       2026      31  5.90 (3.81–8.30) 5.13 (3.38–7.02) 0.28 (0.19–0.39) 0.24 (0.16–0.33) 0.12 (0.08–0.17)  0.12 (0.05–0.19) 0.52 (0.36–0.71)
+média das 6 (dois estágios)     182               NaN              NaN              NaN 0.82 (0.33–1.40) 0.45 (0.23–0.70)  0.37 (0.08–0.74) 0.55 (0.43–0.78)
+Traceback (most recent call last):
+  File "/home/claude/tse/scripts/bootstrap_pres.py", line 49, in <module>
+    d = pd.read_csv(f"{p}/semaforo_pontos.csv").assign(fonte=a); l = ns["luzes"](d); l["ok"] = (l.modelo - l.verdade).abs() <= 0.5
+                                                                     ~~~~~~~~~~~^^^
+  File "<string>", line 18, in luzes
+  File "/usr/local/lib/python3.13/site-packages/pandas/core/generic.py", line 6194, in __getattr__
+    return object.__getattribute__(self, name)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AttributeError: 'DataFrame' object has no attribute 'corr_intra'
+
+verde (v1, 31 ordens simuladas, 6 eleições): 99.6% dos pontos verdes com erro ≤ 0,5 (IC95% 98.1–100.0); pontos verdes 495
