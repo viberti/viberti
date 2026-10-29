@@ -1,0 +1,85 @@
+{
+ "versao": "2.0",
+ "congelado_em": "2026-10-29T17:35:00+00:00",
+ "substitui": "nada; o protocolo v1 continua valendo como registro do que foi congelado antes dos testes de 2018 e dos transplantes. A v2 é uma versão nova, com escolhas feitas depois de ver esses testes",
+ "escopo": "Projeção do 2º turno presidencial (alvo binário) a partir da apuração por seção do TSE (o 1º turno continua pelo protocolo v1)",
+ "codigo_sha256": {
+  "scripts/modelo.py": "c24d1d07534d4e28c81763acebd7ddfddc9033df67a4b43a55d33689a5dcde38",
+  "scripts/modelo_1t_multi.py": "eca0c552613796e1c902c057f3aa32d30e4a3bbc576b23d01dd11b5fad164ff1",
+  "scripts/semaforo.py": "274caa6eab35f717c659a72ef43e79b742c7cbdc6be6478500e92158b5c578d9",
+  "scripts/regra_loo.py": "a59f7f745eeb5cdd8ebed29e8a6a412f105f4e8ebacdc7deca1fcde4bd4f587c",
+  "scripts/regra_vencedor_loo.py": "2add6337fbf0ecd9ea7f69c0ce22874e3498c29a9a9f86d9187f26ce6f12d6e5",
+  "scripts/regra_estab.py": "f16778f2f8c6feee54a82e868adb552f1ae72bccde1e51a7bf455b465b6854a7",
+  "scripts/zipindex.py": "824bfd56864a1925828752913553b1427b75eca5b7d5d8c100f1a69c57b488d9",
+  "scripts/ber.py": "62aac65ea61ed14c9282359f7cf0b631947f6cbd07520444d805ad0a8fca7799",
+  "scripts/decode_bu.py": "547affc4a79096bd41695e080e92524e602c543eedb9672ae7c4d7b8f76c1ed7",
+  "scripts/crawl_bu.py": "ccc1f965a496012afdf462667e33cba2d1b5cadcaf51bbc2dc66da948d835be7",
+  "scripts/crawl_aux_1t.py": "9620f56cb25d881b7731bfd6be1e45c3d3a1dd7c1eaeaf82bc9bac0fc7efb85f",
+  "load_tse.py": "7a92bdb3d449fc38e96f4684c839d4de7f192846bf749da7ee40dacb4f6a4ec0",
+  "load_secao.py": "84bd7e17afa8ba7d98b9e8cb969545920f301156785763aa256d1505a982d956",
+  "load_hist.py": "5d9e26cd60dfab98f0ef4fc9e624ffff4fc38fadd6ffe9da36a92d26e4fabb60",
+  "scripts/run_adv.sh": "6c5bf7824d41ce37add81d8b18c10d93580b1971de835355a43c827ba8365622",
+  "scripts/run_alarme.sh": "0309655b5a595f106f20fd7cd0fd3024e091bf9c00f738339e961aa6bca84866",
+  "scripts/semaforo_v2.py": "81357447b8671ce7d3a83ace1348f84899a01ccc0c82056de1dad356fe65535e",
+  "scripts/run_v2b.sh": "90d00b54636db06f86dd272dce1fbbeb7951249764dd0d11e726d62c5eed9df9"
+ },
+ "dados_sha256": {
+  "ibge/ibge_mun.parquet (covariáveis municipais do Censo 2022 usadas por COV=1x)": "9d497186fc08ddbac1c84e11d2ee0e44a36900ee59a8c78735d6da343b1f7881"
+ },
+ "parametros_2t": {
+  "RIDGE_SEC": 1000,
+  "KUF": 400,
+  "KMU": 60,
+  "KC": 3000,
+  "peso_secao": "v^0.5",
+  "TAU_G": 0.02,
+  "TAU_UF_MIN": 0.15,
+  "TAU_MUN_MIN": 0.02,
+  "SIMS": 300,
+  "UNC": "bv",
+  "ZONA": 0,
+  "HIST": "",
+  "MUNI": "",
+  "COV": "1x",
+  "TIPO": 1
+ },
+ "mudancas_em_relacao_ao_v1": [
+  "TAU_UF_MIN 0,027 → 0,15: piso do desvio entre UFs na simulação, na escala do desvio entre UFs da mudança 1T→2T observada em 2014 (0,25) e 2018 (0,18)",
+  "COV=1x: covariáveis municipais (alfabetização, PIB per capita, % evangélicos, % brancos; Censo 2022) e interações com o voto do 1T",
+  "TIPO=1: efeito capital/interior por UF, com incerteza própria",
+  "regra verde: exige também >= 15% das seções apuradas"
+ ],
+ "regra_verde": "pelo menos 15% das seções apuradas E todas as 10 células região × capital/interior com >= 1% do eleitorado apto apurado E |viés do histórico| <= 10 pontos",
+ "regra_amarela": "|projeção − 50| >= 1 ponto E >= 200 municípios com seções apuradas E |viés do histórico| <= 10; uma vez verde, o vencedor permanece anunciado enquanto a faixa de 90% não contiver 50",
+ "alarme_vermelho": "em municípios com >= 5 seções apuradas, correlação (conjunto, >= 200 seções) entre a posição de chegada centrada no município e a mudança observada do voto (logit 2T − logit 1T) centrada no município; |correlação| >= 0,15 força vermelho",
+ "semaforo": "vermelho se o alarme dispara; senão verde pela regra_verde; senão amarelo pela regra_amarela; senão vermelho",
+ "sinal_auxiliar_nao_decisorio": "mudança da projeção desde a atualização anterior (registrado, não usado na decisão)",
+ "por_que_pos_hoc": "As três mudanças foram escolhidas depois de ver duas falhas do verde: 2018 com ordens reais transplantadas (erro de -0,80 aos 10% no v1) e 2006 com a ordem de 2026 (erro de -0,73 aos 10% na v2b sem a regra dos 15%). Os números da v2 nas eleições de 2006 a 2026 são, portanto, de ajuste e não de teste.",
+ "resultado_no_ajuste": {
+  "pontos": 2483,
+  "verdes": 337,
+  "verde_com_erro_ate_0_5": "100%",
+  "erro_max_verde": 0.48,
+  "vencedor_anunciado": 1438,
+  "anuncios_errados": 0,
+  "primeiro_verde_mediana": "20% das seções (o mesmo do v1)",
+  "ordens_reais": "verde aos 15% em 2022 (17h41, erro -0,18) e em 2026 (17h29, erro -0,04)"
+ },
+ "o_que_e_proibido_depois_do_congelamento": [
+  "alterar parâmetros, regras ou código antes de rodar a eleição de teste",
+  "escolher ordens de chegada depois de ver o resultado",
+  "descartar eleições ou cortes do relatório"
+ ],
+ "avaliacao_prevista": {
+  "unidade_de_evidencia": "eleição",
+  "metricas": [
+   "erro absoluto da projeção por corte (0,5% a 50%)",
+   "cobertura da faixa de 90% por fase",
+   "momento e acerto das luzes amarela e verde",
+   "comparação com apuração parcial e mudança uniforme por UF × capital/interior"
+  ],
+  "ordens": "ordem real (hora de gravação ou de recebimento publicada pelo TSE) + as mesmas ordens simuladas com as sementes fixas do código",
+  "comparacao": "v1 e v2 rodam lado a lado na próxima eleição com 2º turno; as duas são relatadas, qualquer que seja o resultado"
+ },
+ "proximas_aplicacoes": "qualquer eleição presidencial, de governador ou de prefeito com 2º turno e votação por seção publicada, a começar pela próxima disponível; a próxima presidencial é em 2030"
+}

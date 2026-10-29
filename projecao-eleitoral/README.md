@@ -6,20 +6,22 @@ Modelo que projeta o resultado final a partir das primeiras seções apuradas, c
 
 | Pasta ou arquivo | O que é |
 |---|---|
-| `protocolo_v1.json`, `protocolo_v1.sha256` | Versão congelada em 29/10/2026: parâmetros, regras do semáforo, plano de avaliação e SHA-256 de cada script |
-| `verificar_hashes.py` | Confere que o código em `codigo/` é o mesmo que foi congelado |
+| `protocolo_v1.json`, `protocolo_v1.sha256` | Versão congelada em 29/10/2026 (12h35 UTC): parâmetros, regras do semáforo, plano de avaliação e SHA-256 de cada script |
+| `protocolo_v2.json`, `protocolo_v2.sha256` | Versão 2, congelada no mesmo dia depois dos testes de 2018 e das ordens transplantadas: incerteza entre UFs maior, covariáveis do Censo, efeito capital/interior e verde só a partir de 15% das seções. As escolhas são pós-hoc e estão descritas no próprio arquivo; v1 e v2 serão avaliadas lado a lado |
+| `verificar_hashes.py` | Confere que o código em `codigo/` é o mesmo que foi congelado nos dois protocolos |
 | `codigo/load_*.py` | Carregam os dados abertos do TSE em DuckDB |
 | `codigo/scripts/` | Modelo (`modelo.py`, `modelo_1t_multi.py`), ordens de chegada e semáforo (`semaforo.py`), escolha das regras (`regra_loo.py`, `regra_vencedor_loo.py`, `regra_estab.py`), leitura dos arquivos da urna (`zipindex.py`, `ber.py`, `decode_bu.py`, `crawl_bu.py`, `crawl_aux_1t.py`) e os `run_*.sh` que geram cada tabela |
 | `codigo/testes/teste_vazamento.py` | Embaralha os votos das seções não apuradas e confere que a projeção não muda |
 | `codigo/israel/` | Adaptação para a eleição israelense (Knesset 26) |
 | `dados/ordens_reais/` | Hora de chegada de cada seção em três noites reais (ver LEIAME) |
+| `dados/ordens_transplantadas/` | Ordens reais de 2022 e 2026 aplicadas às seções de 2006, 2010, 2014 e 2018 (ver LEIAME) |
 
 ## Reproduzir
 
 1. Python 3.13, pandas, numpy e duckdb.
 2. Baixar os dados abertos do TSE (votação por seção, detalhe da votação por seção, perfil do eleitorado) e carregar com `codigo/load_tse.py`, `load_secao.py` e `load_hist.py`. Os scripts usam caminhos absolutos da máquina original (`/home/claude/tse`); ajuste-os antes de rodar. Não alteramos os arquivos para manter os hashes do protocolo.
 3. Teste de vazamento: `ANO=2026 UNC=bv SIMS=50 python3 -I codigo/testes/teste_vazamento.py <banco 2026>`.
-4. Tabelas da nota: `run_sem2.sh` (2º turno, 31 ordens), `run_unc.sh` (incerteza), `run_adv.sh` (ordens adversariais), `run_alarme.sh` (alarme), `run_1t_v2.sh` (1º turno); depois `regra_loo.py modelo/sem2` e `regra_estab.py`.
+4. Tabelas da nota: `run_sem2.sh` (2º turno, 31 ordens), `run_unc.sh` (incerteza), `run_adv.sh` (ordens adversariais), `run_alarme.sh` (alarme), `run_1t_v2.sh` (1º turno); depois `regra_loo.py modelo/sem2` e `regra_estab.py`. Versão 2: `run_v2b.sh` e depois `semaforo_v2.py modelo/sem_v2b/*/semaforo_pontos.csv`.
 
 A nota metodológica descreve o método, a validação e os problemas conhecidos.
 
