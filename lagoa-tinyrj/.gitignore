@@ -1,0 +1,4 @@
+# imagens de terceiros (tinyrj.com): geradas por build.py, nunca no git
+saida*/
+.cache/
+__pycache__/
