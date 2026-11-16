@@ -1,0 +1,10 @@
+{
+  "name": "porto-isometrico",
+  "version": "1.0.0",
+  "description": "A Ribeira do Porto em pixel art isométrica, a partir de dados abertos",
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "private": true,
+  "type": "commonjs"
+}

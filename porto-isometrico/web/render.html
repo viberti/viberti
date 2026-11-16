@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Porto isométrico · render</title>
+<script type="importmap">{ "imports": { "three": "/node_modules/three/build/three.module.js" } }</script>
+<style>body { margin: 0; background: #222; }</style>
+</head>
+<body>
+<script type="module">
+  import { setup } from "./render.js";
+  // pipeline/render.mjs espera por window.ready e chama window.R.renderTile(c, r)
+  window.ready = setup().then(R => { window.R = R; return { grid: R.grid, tile: R.tile, mpp: R.mpp, labels: R.labels, credits: R.credits }; })
+    .catch(e => { window.failed = String(e && e.stack || e); throw e; });
+</script>
+</body>
+</html>

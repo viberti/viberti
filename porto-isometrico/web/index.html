@@ -1,0 +1,315 @@
+<meta charset="utf-8">
+<title>Porto isométrico</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A Ribeira do Porto e o cais de Gaia em pixel art isométrica, renderizados a partir de dados abertos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500&family=Silkscreen&display=swap">
+<style>
+/* Layout: o mapa ocupa a página inteira; por cima, um cartão com o nome e os lugares, os botões de zoom e os créditos.
+   Cor: neutros frios de granito, um só acento azul de azulejo. */
+:root {
+  --ground: #dfe4e5; --ink: #18212a; --muted: #56636e; --line: #c6cfd3;
+  --panel: rgb(249 250 250 / .9); --panel-solid: #f6f8f8; --accent: #2b5a9f; --accent-ink: #f5f8ff;
+  --label-bg: #18212a; --label-fg: #f4f1e8; --shadow: 0 8px 28px rgb(24 33 42 / .16);
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --pixel: "Silkscreen", "IBM Plex Mono", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ground: #10151a; --ink: #e4eaee; --muted: #93a0ab; --line: #2a343c;
+  --panel: rgb(21 27 33 / .88); --panel-solid: #161c22; --accent: #86aae6; --accent-ink: #0d1626;
+  --label-bg: #0b1015; --label-fg: #f4f1e8; --shadow: 0 8px 28px rgb(0 0 0 / .45); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --ground: #10151a; --ink: #e4eaee; --muted: #93a0ab; --line: #2a343c;
+  --panel: rgb(21 27 33 / .88); --panel-solid: #161c22; --accent: #86aae6; --accent-ink: #0d1626;
+  --label-bg: #0b1015; --label-fg: #f4f1e8; --shadow: 0 8px 28px rgb(0 0 0 / .45); color-scheme: dark }
+
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 400 14px/1.45 var(--sans); overflow: hidden;
+  -webkit-font-smoothing: antialiased; }
+#map { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab;
+  -webkit-user-select: none; user-select: none; }
+#map.dragging { cursor: grabbing; }
+
+.panel { position: fixed; z-index: 2; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 10px; box-shadow: var(--shadow); backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%); }
+@media (prefers-reduced-transparency: reduce) { .panel { background: var(--panel-solid); backdrop-filter: none; } }
+
+.card { left: max(16px, calc(env(safe-area-inset-left, 0px) + 16px)); top: calc(16px + env(safe-area-inset-top, 0px));
+  width: min(320px, calc(100vw - 32px)); padding: 14px 16px; display: grid; gap: 10px; }
+.card h1 { margin: 0; font: 600 22px/1.1 var(--display); letter-spacing: -0.01em; text-wrap: balance; }
+.card .sub { margin: 0; color: var(--muted); font-size: 13px; }
+.places { display: flex; flex-wrap: wrap; gap: 6px; }
+.places button { height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: transparent;
+  color: var(--ink); font: 500 12px/1 var(--sans); cursor: pointer; }
+.places button:hover { border-color: var(--accent); color: var(--accent); }
+.places button[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); font: 500 13px/1.3 var(--sans); cursor: pointer; }
+.link:hover { text-decoration: underline; }
+.about { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+.about p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); max-width: 62ch; }
+.about strong { color: var(--ink); font-weight: 500; }
+
+.zoom { right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: grid; padding: 4px; gap: 4px; }
+.zoom button { width: 40px; height: 40px; border-radius: 8px; border: 0; background: transparent; color: var(--ink);
+  font: 500 20px/1 var(--mono); cursor: pointer; }
+.zoom button:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.zoom .lv { font: 500 11px/1 var(--mono); color: var(--muted); text-align: center; padding: 2px 0 4px; font-variant-numeric: tabular-nums; }
+
+.foot { left: max(16px, calc(env(safe-area-inset-left, 0px) + 16px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  max-width: min(520px, calc(100vw - 104px)); padding: 6px 10px; font-size: 11.5px; line-height: 1.4; color: var(--muted); }
+.foot .scale { font: 500 11.5px/1.4 var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+
+button:focus-visible, .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 560px) {
+  .card { padding: 12px 14px; gap: 8px; }
+  .card h1 { font-size: 19px; }
+  .places button { height: 26px; padding: 0 9px; }
+  .foot { font-size: 10.5px; }
+}
+</style>
+
+<canvas id="map" aria-label="Mapa isométrico da Ribeira do Porto e do cais de Gaia. Arraste para mover, use a roda ou pince para dar zoom."></canvas>
+
+<section class="panel card" aria-label="Porto isométrico">
+  <div class="row"><h1>Porto isométrico</h1></div>
+  <p class="sub">A Ribeira, o cais de Gaia e a Ponte Luiz I, quadro a quadro, a partir de dados abertos. Protótipo.</p>
+  <div class="places" id="places"></div>
+  <div class="row"><button class="link" id="aboutBtn" aria-expanded="false" aria-controls="about">Como foi feito</button></div>
+  <div class="about" id="about" hidden>
+    <p><strong>Os dados.</strong> Prédios, ruas, jardins, árvores e o Douro vêm do OpenStreetMap; o relevo, de um modelo de elevação público. Onde o OSM não diz a altura de um prédio, ela é estimada pelo tipo e pelo número de andares.</p>
+    <p><strong>O desenho.</strong> A cena 3D é renderizada com uma câmera ortográfica a 30°, a projeção 2:1 da pixel art isométrica, com luz em degraus e contorno escuro, em 44 tiles de 512 px. Cada pixel vale meio metro.</p>
+    <p><strong>O que falta.</strong> No Isometric NYC, cada tile passa ainda por um modelo de imagem treinado para redesenhá-lo à mão. Estes são os renders antes desse passo.</p>
+  </div>
+</section>
+
+<div class="panel zoom" aria-label="Zoom">
+  <button id="zin" aria-label="Aproximar">+</button>
+  <button id="zout" aria-label="Afastar">−</button>
+  <div class="lv" id="lv">1×</div>
+</div>
+
+<div class="panel foot">
+  <span class="scale" id="scale">1 px = 0,5 m</span> · Dados © contribuidores do <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color: var(--accent)">OpenStreetMap</a> (ODbL) · relevo: Terrain Tiles (Mapzen/AWS: SRTM, EU-DEM)
+</div>
+
+<script>
+(() => {
+  const cv = document.getElementById("map"), ctx = cv.getContext("2d");
+  const ZOOMS = [0.125, 0.25, 0.5, 1, 2, 3, 4];   // de 1× para cima, só inteiros: os pixels ficam quadrados
+  let M = null, view = { x: 0, y: 0, s: 1 }, target = null, raf = 0, dpr = 1;
+  const imgs = new Map();
+  const slug = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
+    kick();
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(draw); }
+
+  function tileImg(z, x, y) {
+    const key = `${z}/${x}_${y}`;
+    let e = imgs.get(key);
+    if (!e) {
+      e = { img: new Image(), ok: false, bad: false };
+      e.img.onload = () => { e.ok = true; kick(); };
+      e.img.onerror = () => { e.bad = true; };
+      e.img.src = `tiles/${key}.png`;
+      imgs.set(key, e);
+    }
+    return e;
+  }
+
+  function draw() {
+    raf = 0;
+    if (target) {   // o zoom anima até ao degrau pedido, à volta do ponto escolhido
+      const k = 0.28;
+      const ns = view.s * Math.pow(target.s / view.s, k);
+      const ax = target.ax, ay = target.ay;
+      view.x = ax.wx - (ax.sx - innerWidth / 2) / ns; view.y = ay.wy - (ay.sy - innerHeight / 2) / ns;
+      view.s = Math.abs(Math.log(target.s / ns)) < 0.01 ? target.s : ns;
+      if (view.s === target.s) { view.x = ax.wx - (ax.sx - innerWidth / 2) / view.s; view.y = ay.wy - (ay.sy - innerHeight / 2) / view.s; target = null; }
+      else kick();
+    }
+    const W = cv.width, H = cv.height, s = view.s * dpr;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    if (!M) return;
+    ctx.imageSmoothingEnabled = view.s < 1;
+    const z = Math.max(0, Math.min(M.native, M.native + Math.floor(Math.log2(view.s) + 1e-6)));
+    const f = Math.pow(2, M.native - z), T = M.tile, span = T * f;   // px do desenho por tile neste nível
+    const x0 = view.x - W / 2 / s, y0 = view.y - H / 2 / s, x1 = view.x + W / 2 / s, y1 = view.y + H / 2 / s;
+    for (let ty = Math.max(0, Math.floor(y0 / span)); ty <= Math.min(Math.ceil(M.height / span) - 1, Math.floor(y1 / span)); ty++) {
+      for (let tx = Math.max(0, Math.floor(x0 / span)); tx <= Math.min(Math.ceil(M.width / span) - 1, Math.floor(x1 / span)); tx++) {
+        const sx = Math.round((tx * span - x0) * s), sy = Math.round((ty * span - y0) * s);
+        const ex = Math.round(((tx + 1) * span - x0) * s), ey = Math.round(((ty + 1) * span - y0) * s);
+        const e = tileImg(z, tx, ty);
+        if (e.ok) { ctx.drawImage(e.img, sx, sy, ex - sx, ey - sy); continue; }
+        if (e.bad) continue;
+        // enquanto carrega: o pedaço do nível de cima, ampliado
+        for (let up = 1; up <= z; up++) {
+          const pz = z - up, pf = Math.pow(2, up), px = Math.floor(tx / pf), py = Math.floor(ty / pf);
+          const pe = imgs.get(`${pz}/${px}_${py}`);
+          if (pe && pe.ok) {
+            const part = T / pf;
+            ctx.drawImage(pe.img, (tx - px * pf) * part, (ty - py * pf) * part, part, part, sx, sy, ex - sx, ey - sy);
+            break;
+          }
+        }
+      }
+    }
+    drawLabels(x0, y0, s);
+    document.getElementById("lv").textContent = view.s >= 1 ? `${Math.round(view.s)}×` : `1/${Math.round(1 / view.s)}`;
+    const m = M.mpp / view.s;
+    document.getElementById("scale").textContent = `1 px = ${m.toLocaleString("pt-PT", { maximumFractionDigits: 2 })} m`;
+  }
+
+  function drawLabels(x0, y0, s) {
+    const css = getComputedStyle(document.documentElement);
+    const bg = css.getPropertyValue("--label-bg").trim(), fg = css.getPropertyValue("--label-fg").trim();
+    const size = view.s >= 0.5 ? 16 : 8;
+    if (view.s < 0.2) return;
+    ctx.font = `${size * dpr}px ${css.getPropertyValue("--pixel")}`;
+    ctx.textBaseline = "middle";
+    for (const l of M.labels) {
+      if (view.s < 0.4 && l.kind !== "ponte" && l.kind !== "agua" && l.kind !== "bairro") continue;
+      const px = Math.round((l.x - x0) * s), py = Math.round((l.y - y0) * s);
+      const text = l.kind === "agua" ? l.name.toUpperCase() : l.name;
+      const w = Math.ceil(ctx.measureText(text).width), pad = Math.round(size * 0.5 * dpr), h = Math.round(size * 1.5 * dpr);
+      const lift = l.kind === "agua" ? 0 : Math.round(size * 1.6 * dpr);
+      const bx = px - Math.round(w / 2) - pad, by = py - lift - Math.round(h / 2);
+      if (l.kind === "agua") {
+        ctx.fillStyle = "rgb(235 244 250 / .92)"; ctx.fillText(text, px - w / 2, py);
+        continue;
+      }
+      ctx.fillStyle = bg;
+      ctx.fillRect(bx, by, w + 2 * pad, h);
+      const tip = Math.max(2, Math.round(3 * dpr));   // o bico do balão, em degraus de pixel
+      ctx.fillRect(px - tip, by + h, tip * 2, tip); ctx.fillRect(px - Math.round(tip / 2), by + h + tip, tip, tip);
+      ctx.fillStyle = fg; ctx.fillText(text, bx + pad, by + h / 2 + dpr * 0.5);
+    }
+  }
+
+  // ---- interação --------------------------------------------------------------------------------------------
+  const pts = new Map(); let pinch = null, last = null;
+  cv.addEventListener("pointerdown", e => {
+    cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    target = null; cv.classList.add("dragging"); setCurrent(null);
+    if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: view.s }; }
+  });
+  cv.addEventListener("pointermove", e => {
+    if (!pts.has(e.pointerId)) return;
+    const prev = pts.get(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 1) { view.x -= (e.clientX - prev.x) / view.s; view.y -= (e.clientY - prev.y) / view.s; }
+    else if (pinch && pts.size === 2) {
+      const [a, b] = [...pts.values()], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      const before = toWorld(mx, my);
+      view.s = clampS(pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d);
+      const after = toWorld(mx, my); view.x += before.x - after.x; view.y += before.y - after.y;
+      view.x -= (e.clientX - prev.x) / view.s / 2; view.y -= (e.clientY - prev.y) / view.s / 2;
+    }
+    clampView(); kick();
+  });
+  const up = e => {
+    pts.delete(e.pointerId);
+    if (pts.size < 2 && pinch) { pinch = null; zoomTo(nearestZoom(view.s), innerWidth / 2, innerHeight / 2); }
+    if (!pts.size) cv.classList.remove("dragging");
+  };
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  cv.addEventListener("wheel", e => {
+    e.preventDefault();
+    const now = performance.now(); if (last && now - last < 140) return; last = now;   // um degrau por gesto
+    step(e.deltaY < 0 ? 1 : -1, e.clientX, e.clientY);
+  }, { passive: false });
+  addEventListener("keydown", e => {
+    if (e.target.closest && e.target.closest("button") && (e.key === "Enter" || e.key === " ")) return;
+    const pan = 120 / view.s;
+    if (e.key === "+" || e.key === "=") step(1);
+    else if (e.key === "-" || e.key === "_") step(-1);
+    else if (e.key === "ArrowLeft") view.x -= pan; else if (e.key === "ArrowRight") view.x += pan;
+    else if (e.key === "ArrowUp") view.y -= pan; else if (e.key === "ArrowDown") view.y += pan;
+    else return;
+    clampView(); kick();
+  });
+  document.getElementById("zin").onclick = () => step(1);
+  document.getElementById("zout").onclick = () => step(-1);
+
+  const clampS = s => Math.max(ZOOMS[0], Math.min(ZOOMS[ZOOMS.length - 1], s));
+  const nearestZoom = s => ZOOMS.reduce((a, b) => Math.abs(Math.log(b / s)) < Math.abs(Math.log(a / s)) ? b : a);
+  const toWorld = (sx, sy) => ({ x: view.x + (sx - innerWidth / 2) / view.s, y: view.y + (sy - innerHeight / 2) / view.s });
+  function step(dir, sx = innerWidth / 2, sy = innerHeight / 2) {
+    const cur = target ? target.s : view.s;
+    const i = ZOOMS.indexOf(nearestZoom(cur)), j = Math.max(0, Math.min(ZOOMS.length - 1, i + dir));
+    zoomTo(ZOOMS[j], sx, sy);
+  }
+  function zoomTo(s, sx, sy) {
+    const w = toWorld(sx, sy);
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { view.s = s; view.x = w.x - (sx - innerWidth / 2) / s; view.y = w.y - (sy - innerHeight / 2) / s; target = null; }
+    else target = { s, ax: { wx: w.x, sx }, ay: { wy: w.y, sy } };
+    clampView(); kick();
+  }
+  function clampView() { if (!M) return; view.x = Math.max(0, Math.min(M.width, view.x)); view.y = Math.max(0, Math.min(M.height, view.y)); }
+
+  // ---- lugares ----------------------------------------------------------------------------------------------
+  const PLACES = ["Ribeira", "Ponte Luiz I", "Sé do Porto", "Torre dos Clérigos", "Cais de Gaia", "Mosteiro da Serra do Pilar"];
+  function setCurrent(name) {
+    for (const b of document.querySelectorAll(".places button")) b.setAttribute("aria-current", String(b.dataset.name === name));
+  }
+  function goTo(name, animate = true) {
+    const l = M.labels.find(l => l.name === name); if (!l) return;
+    const s = view.s < 1 ? 1 : view.s;
+    if (animate && !matchMedia("(prefers-reduced-motion: reduce)").matches) glide(l.x, l.y + 40, s);
+    else { view.x = l.x; view.y = l.y + 40; view.s = s; kick(); }
+    setCurrent(name);
+    try { history.replaceState(null, "", "#" + slug(name)); } catch {}
+  }
+  function glide(x, y, s) {
+    const from = { ...view }, t0 = performance.now(), D = 520; target = null;
+    const tick = now => {
+      const t = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - t, 3);
+      view.x = from.x + (x - from.x) * e; view.y = from.y + (y - from.y) * e; view.s = from.s * Math.pow(s / from.s, e);
+      if (t >= 1) view.s = s;
+      draw(); if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  addEventListener("hashchange", () => {
+    const l = M && M.labels.find(l => slug(l.name) === location.hash.slice(1)); if (l) goTo(l.name);
+  });
+
+  const aboutBtn = document.getElementById("aboutBtn"), about = document.getElementById("about");
+  aboutBtn.onclick = () => { about.hidden = !about.hidden; aboutBtn.setAttribute("aria-expanded", String(!about.hidden)); };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", kick);
+  new MutationObserver(kick).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  addEventListener("resize", resize);
+  fetch("tiles/map.json").then(r => r.json()).then(m => {
+    M = m;
+    const box = document.getElementById("places");
+    for (const name of PLACES) {
+      const b = document.createElement("button"); b.textContent = name; b.dataset.name = name;
+      b.onclick = () => goTo(name); box.append(b);
+    }
+    // a primeira vista: a Ribeira e a ponte, a 1× (no telemóvel, a metade)
+    const r = m.labels.find(l => l.name === "Ribeira"), p = m.labels.find(l => l.name === "Ponte Luiz I");
+    view = { x: (r.x + p.x) / 2, y: (r.y + p.y) / 2 + 60, s: innerWidth < 700 ? 0.5 : 1 };
+    const fromHash = m.labels.find(l => slug(l.name) === location.hash.slice(1));
+    if (fromHash) goTo(fromHash.name, false);
+    for (let z = 0; z <= Math.min(2, m.native); z++)   // os níveis de cima chegam primeiro: nunca há buracos
+      for (let y = 0; y < Math.ceil(m.height / (m.tile * 2 ** (m.native - z))); y++)
+        for (let x = 0; x < Math.ceil(m.width / (m.tile * 2 ** (m.native - z))); x++) tileImg(z, x, y);
+    resize();
+    if (document.fonts) document.fonts.load("16px Silkscreen").then(kick, () => {});
+  }).catch(() => {
+    document.querySelector(".sub").textContent = "Não foi possível carregar o mapa. Recarregue a página.";
+  });
+  resize();
+})();
+</script>
