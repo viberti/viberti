@@ -1,0 +1,6 @@
+node_modules/
+# regeneráveis: pipeline/fetch_osmapi.py e pipeline/scene.py
+data/
+web/scene/
+web/tiles/raw/
+__pycache__/
